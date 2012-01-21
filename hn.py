@@ -18,6 +18,7 @@ from xml.sax.saxutils import escape
 
 import urllib, re, os, urlparse
 import HTMLParser, feedparser
+import feedgenerator
 from BeautifulSoup import BeautifulSoup
 from pprint import pprint
 
@@ -168,38 +169,26 @@ def upgradeFeed(feedUrl):
     
     feedData = urllib.urlopen(feedUrl).read().decode('utf-8')
     
-    upgradedLinks = []
     parsedFeed = feedparser.parse(feedData)
     
+    feedOutput = feedgenerator.Rss201rev2Feed(
+        title=u"Hacker News",
+        link=u"http://news.ycombinator.com/",
+        feed_url=u"http://matsuu.org/hackernews/hackernews.html",
+        description=u"Links for the intellectually curious, ranked by readers.",
+        language=u"en",
+    )
+
     for entry in parsedFeed.entries:
-        upgradedLinks.append((entry, upgradeLink(entry.link)))
-        
-    rss = u"""<rss version="2.0">
-<channel>
-	<title>Hacker News</title>
-	<link>http://news.ycombinator.com/</link>
-	<description>Links for the intellectually curious, ranked by readers.</description>
-	
-    """
+        content = upgradeLink(entry.link)
+        feedOutput.add_item(
+            title=entry.title,
+            link=entry.link,
+            comments=entry.comments,
+            description=u"""<p><a href="%s">Comments</a></p>%s<p><a href="%s">Comments</a>""" % (entry.comments, content, entry.comments)
+        )
 
-    for entry, content in upgradedLinks:
-        rss += u"""
-    <item>
-        <title>%s</title>
-        <link>%s</link>
-        <comments>%s</comments>
-        <description>
-            <![CDATA[<a href="%s">Comments</a><br/>%s<br/><a href="%s">Comments</a>]]>
-        </description>
-    </item>
-""" % (entry.title, escape(entry.link), escape(entry.comments), entry.comments, content, entry.comments)
-
-    rss += u"""
-</channel>
-</rss>"""
-
-
-    return rss.encode('utf-8')
+    return feedOutput.writeString('utf-8')
     
 if __name__ == "__main__":  
     print upgradeFeed(HN_RSS_FEED)
