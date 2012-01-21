@@ -180,7 +180,7 @@ def upgradeLink(link):
 
 def upgradeFeed(feedUrl):
     
-    feedData = urllib.urlopen(feedUrl).read().decode('utf-8')
+    feedData = urllib.urlopen(feedUrl).read()
     
     parsedFeed = feedparser.parse(feedData)
     
