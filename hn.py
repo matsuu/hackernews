@@ -36,7 +36,7 @@ PUNCTUATION = re.compile("""[!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~]""")
 
 def grabContent(link, html):
     
-    replaceBrs = re.compile("<br */? *>[ \r\n]*<br */? *>")
+    replaceBrs = re.compile("<br */? *>\s*<br */? *>")
     html = re.sub(replaceBrs, "</p><p>", html)
     
     try:
