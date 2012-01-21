@@ -27,6 +27,7 @@ HN_RSS_FEED = u"http://news.ycombinator.com/rss"
 NEGATIVE    = re.compile("comment|meta|footer|footnote|foot")
 POSITIVE    = re.compile("post|hentry|entry|content|text|body|article")
 PUNCTUATION = re.compile("\W")
+BLOGSPOT    = re.compile(".*You can still visit a.*non-dynamic version")
 
 
 def grabContent(link, html):
@@ -154,6 +155,18 @@ def upgradeLink(link):
             try:
                 html = urllib.urlopen(link).read()
                 content = grabContent(link, html)
+                if content == "" and BLOGSPOT.match(html):
+                  index = link.find("?")
+                  new_link = link
+                  if index > 0:
+                    query_string = urlparse.parse_qs(new_link[index+1:])
+                    query_string["v"] = "0"
+                    new_link = new_link[:index+1] + urllib.urlencode(query_string)
+                  else:
+                    new_link += "?v=0"
+                  html = urllib.urlopen(new_link).read()
+                  content = grabContent(new_link, html)
+
                 filp = open(linkFile, "w")
                 filp.write(content.encode('utf-8'))
                 filp.close()
