@@ -21,13 +21,7 @@ import HTMLParser, feedparser
 from BeautifulSoup import BeautifulSoup
 from pprint import pprint
 
-import codecs
-import sys
-streamWriter = codecs.lookup('utf-8')[-1]
-sys.stdout = streamWriter(sys.stdout)
-
-
-HN_RSS_FEED = "http://news.ycombinator.com/rss"
+HN_RSS_FEED = u"http://news.ycombinator.com/rss"
 
 NEGATIVE    = re.compile("comment|meta|footer|footnote|foot")
 POSITIVE    = re.compile("post|hentry|entry|content|text|body|article")
@@ -109,7 +103,7 @@ def grabContent(link, html):
     
     fixLinks(topParent, link)
     
-    return topParent.renderContents()
+    return topParent.renderContents().decode('utf-8')
     
 
 def fixLinks(parent, link):
@@ -150,19 +144,17 @@ def killDivs(parent):
 
 def upgradeLink(link):
     
-    link = link.encode('utf-8')
-    
     if (not (link.startswith("http://news.ycombinator.com") or link.endswith(".pdf"))):
         linkFile = "upgraded/" + re.sub(PUNCTUATION, "_", link)
         if (os.path.exists(linkFile)):
-            return open(linkFile).read()
+            return open(linkFile).read().decode('utf-8')
         else:
             content = ""
             try:
                 html = urllib.urlopen(link).read()
                 content = grabContent(link, html)
                 filp = open(linkFile, "w")
-                filp.write(content)
+                filp.write(content.encode('utf-8'))
                 filp.close()
             except IOError:
                 pass
@@ -174,7 +166,7 @@ def upgradeLink(link):
 
 def upgradeFeed(feedUrl):
     
-    feedData = urllib.urlopen(feedUrl).read()
+    feedData = urllib.urlopen(feedUrl).read().decode('utf-8')
     
     upgradedLinks = []
     parsedFeed = feedparser.parse(feedData)
@@ -182,7 +174,7 @@ def upgradeFeed(feedUrl):
     for entry in parsedFeed.entries:
         upgradedLinks.append((entry, upgradeLink(entry.link)))
         
-    rss = """<rss version="2.0">
+    rss = u"""<rss version="2.0">
 <channel>
 	<title>Hacker News</title>
 	<link>http://news.ycombinator.com/</link>
@@ -200,14 +192,14 @@ def upgradeFeed(feedUrl):
             <![CDATA[<a href="%s">Comments</a><br/>%s<br/><a href="%s">Comments</a>]]>
         </description>
     </item>
-""" % (entry.title, escape(entry.link), escape(entry.comments), entry.comments, content.decode('utf-8'), entry.comments)
+""" % (entry.title, escape(entry.link), escape(entry.comments), entry.comments, content, entry.comments)
 
-    rss += """
+    rss += u"""
 </channel>
 </rss>"""
 
 
-    return rss
+    return rss.encode('utf-8')
     
 if __name__ == "__main__":  
     print upgradeFeed(HN_RSS_FEED)
