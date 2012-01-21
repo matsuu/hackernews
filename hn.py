@@ -26,7 +26,7 @@ HN_RSS_FEED = u"http://news.ycombinator.com/rss"
 
 NEGATIVE    = re.compile("comment|meta|footer|footnote|foot")
 POSITIVE    = re.compile("post|hentry|entry|content|text|body|article")
-PUNCTUATION = re.compile("""[!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~]""")
+PUNCTUATION = re.compile("\W")
 
 
 def grabContent(link, html):
